@@ -5,11 +5,11 @@
   "autoload": {
     "psr-4": {
       "MailOptin\\AdvanceAnalytics\\": "src/"
-    },
-    "autoload-dev": {
-      "psr-4": {
-        "MailOptin\\AdvanceAnalytics\\": "tests/"
-      }
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "MailOptin\\AdvanceAnalytics\\": "tests/"
     }
   },
   "require-dev": {
