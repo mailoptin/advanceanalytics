@@ -11,5 +11,8 @@
     "psr-4": {
       "MailOptin\\AdvanceAnalytics\\": "tests/"
     }
+  },
+  "require": {
+    "mailoptin/core": "^0.1-dev"
   }
 }
