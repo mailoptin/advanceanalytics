@@ -152,7 +152,7 @@ class AnalyticsRepositoryTest extends WP_UnitTestCase
         $this->addConversionAlternate();
         $this->addConversionAlternate();
 
-        $result = AnalyticsRepository::top_converting_optin();
+        $result = AnalyticsRepository::top_converting_optins();
         $this->assertSame(15, absint($result[0]));
     }
 }

@@ -42,9 +42,7 @@ define('MAILOPTIN_SYSTEM_FILE_PATH', __FILE__);
 
 
 MailOptin\Core\Core::get_instance();
+MailOptin\AdvanceAnalytics\AdvanceAnalytics::get_instance();
+
 MailOptin\Core\RegisterActivation\Base::run_install();
 \MailOptin\AdvanceAnalytics\AdvanceAnalytics::create_stat_table();
-
-MailOptin\Core\Core::get_instance();
-
-MailOptin\AdvanceAnalytics\AdvanceAnalytics::get_instance();
