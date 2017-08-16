@@ -40,11 +40,11 @@ wp_update_user( array( 'ID' => 1, 'first_name' => 'Admin', 'last_name' => 'User'
 
 define('MAILOPTIN_SYSTEM_FILE_PATH', __FILE__);
 
-// addons are called first so their hooks / filters are registered for processing by Core.
-MailOptin\AdvanceAnalytics\AdvanceAnalytics::get_instance();
-
-MailOptin\Core\Core::get_instance();
-
 
 MailOptin\Core\RegisterActivation\Base::run_install();
 \MailOptin\AdvanceAnalytics\AdvanceAnalytics::create_stat_table();
+
+MailOptin\Core\Core::get_instance();
+
+// addons are called first so their hooks / filters are registered for processing by Core.
+MailOptin\AdvanceAnalytics\AdvanceAnalytics::get_instance();
