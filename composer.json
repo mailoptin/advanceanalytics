@@ -11,8 +11,5 @@
     "psr-4": {
       "MailOptin\\AdvanceAnalytics\\": "tests/"
     }
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^5.5"
   }
 }
