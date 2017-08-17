@@ -63,7 +63,7 @@ class AnalyticsRepositoryTest extends WP_UnitTestCase
         $impression = $this->addImpression();
 
         $this->assertInternalType('integer', $impression);
-        $fetch = AnalyticsRepository::get_by_id($impression);
+        $fetch = AnalyticsRepository::get_by_optin_id($impression);
         $this->assertSame(22, absint($fetch['optin_id']));
         $this->assertSame('impression', $fetch['stat_type']);
     }
@@ -73,7 +73,7 @@ class AnalyticsRepositoryTest extends WP_UnitTestCase
         $conversion = $this->addConversion();
 
         $this->assertInternalType('integer', $conversion);
-        $fetch = AnalyticsRepository::get_by_id($conversion);
+        $fetch = AnalyticsRepository::get_by_optin_id($conversion);
         $this->assertSame(22, absint($fetch['optin_id']));
         $this->assertSame('conversion', $fetch['stat_type']);
 
@@ -84,12 +84,12 @@ class AnalyticsRepositoryTest extends WP_UnitTestCase
         $conversion = $this->addConversion();
         $this->assertInternalType('integer', $conversion);
         AnalyticsRepository::delete_by_stat_type('conversion');
-        $this->assertNull(AnalyticsRepository::get_by_id($conversion));
+        $this->assertNull(AnalyticsRepository::get_by_optin_id($conversion));
 
         $conversion = $this->addConversion();
         $this->assertInternalType('integer', $conversion);
         AnalyticsRepository::delete_by_date(date_i18n('Y-m-d'));
-        $this->assertNull(AnalyticsRepository::get_by_id($conversion));
+        $this->assertNull(AnalyticsRepository::get_by_optin_id($conversion));
     }
 
     public function testGetByStatType()

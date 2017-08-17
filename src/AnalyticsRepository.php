@@ -168,18 +168,18 @@ class AnalyticsRepository extends AbstractRepository
     }
 
     /**
-     * Get stat data by ID.
+     * Get stat data by optin ID.
      *
      * @param mixed $id
      *
      * @return array|null|object|void
      */
-    public static function get_by_id($id)
+    public static function get_by_optin_id($optin_id)
     {
         $table = AdvanceAnalytics::$advance_stat_table_name;
 
         return self::wpdb()->get_row(
-            self::wpdb()->prepare("SELECT * FROM $table WHERE id = %d", $id),
+            self::wpdb()->prepare("SELECT * FROM $table WHERE optin_id = %d", $optin_id),
             'ARRAY_A'
         );
     }
