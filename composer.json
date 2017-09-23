@@ -9,7 +9,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "MailOptin\\AdvanceAnalytics\\": "tests/"
+      "MailOptin\\Test\\AdvanceAnalytics\\": "tests/"
     }
   },
   "require": {
