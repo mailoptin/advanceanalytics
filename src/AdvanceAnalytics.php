@@ -10,6 +10,8 @@ class AdvanceAnalytics
 
     public function __construct()
     {
+        if (!defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
+
         global $wpdb;
 
         self::$advance_stat_table_name = $wpdb->prefix . 'mo_optin_advance_stat';

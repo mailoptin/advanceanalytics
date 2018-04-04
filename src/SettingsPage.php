@@ -21,45 +21,19 @@ class SettingsPage extends AbstractSettingsPage
 
     public function __construct()
     {
-        add_action('admin_menu', array($this, 'register_settings_page'));
+        add_action('mailoptin_advance_analytics_settings_page', [$this, 'init']);
 
-        add_filter('mailoptin_settings_page_tabs', array($this, 'analytics_tab'));
+        add_action('admin_init', [$this, 'process_actions']);
+    }
 
+    public function init()
+    {
         // Hook the Email_Template_List table to Custom_Settings_Page_Api main content filter.
-        add_action('wp_cspa_main_content_area', array($this, 'analytics_chart_main_display'), 10, 2);
+        add_filter('wp_cspa_main_content_area', array($this, 'analytics_chart_main_display'), 10, 2);
 
         add_action('wp_cspa_after_settings_tab', array($this, 'chart_filter'));
     }
 
-    /**
-     * Add optin analytics to tab
-     *
-     * @param $tabs
-     *
-     * @return mixed
-     */
-    public function analytics_tab($tabs)
-    {
-        $tabs[65] = array('url' => MAILOPTIN_ADVANCE_ANALYTICS_SETTINGS_PAGE, 'label' => __('Optin Analytics', 'mailoptin'));
-
-        return $tabs;
-    }
-
-    /**
-     * Register settings page
-     */
-    public function register_settings_page()
-    {
-        add_submenu_page(
-            'mailoptin-settings',
-            __('Optin Analytics - MailOptin', 'mailoptin'),
-            __('Optin Analytics', 'mailoptin'),
-            'manage_options',
-            'mailoptin-analytics',
-            array($this, 'settings_admin_page_callback')
-        );
-    }
-    
     /**
      * HTML select dropdown to filter analytics by optin campaigns.
      */
@@ -164,21 +138,6 @@ class SettingsPage extends AbstractSettingsPage
                 Charts::clear_cache();
             }
         }
-    }
-
-    /**
-     * Build the settings page structure. I.e tab, sidebar.
-     */
-    public function settings_admin_page_callback()
-    {
-        $this->process_actions();
-
-        $instance = Custom_Settings_Page_Api::instance();
-        $instance->option_name('mo_analytics');
-        $instance->page_header(__('Optin Analytics', 'mailoptin'));
-        $this->register_core_settings($instance, true);
-        $instance->sidebar($this->analytic_chart_sidebar());
-        $instance->build();
     }
 
     public function analytic_chart_sidebar()
