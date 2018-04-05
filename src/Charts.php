@@ -2,7 +2,6 @@
 
 namespace MailOptin\AdvanceAnalytics;
 
-
 use MailOptin\Core\Admin\SettingsPage\OptinCampaign_List;
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
