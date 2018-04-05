@@ -6,15 +6,9 @@ use MailOptin\Core\Repositories\OptinCampaignsRepository;
 
 class AdvanceAnalytics
 {
-    public static $advance_stat_table_name;
-
     public function __construct()
     {
         if (!defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
-
-        global $wpdb;
-
-        self::$advance_stat_table_name = $wpdb->prefix . 'mo_optin_advance_stat';
 
         // hooking into "mo_create_database_tables" filter didn't work hence this workaround.
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array(__CLASS__, 'create_stat_table'));
@@ -28,6 +22,13 @@ class AdvanceAnalytics
         add_action('mailoptin_track_impressions', array($this, 'track_impressions'), 10, 2);
 
         add_action('mailoptin_track_conversions', array($this, 'track_conversions'), 10, 2);
+    }
+
+    public static function advance_stat_table_name()
+    {
+        global $wpdb;
+
+        return $wpdb->prefix . 'mo_optin_advance_stat';
     }
 
     /**
@@ -84,7 +85,7 @@ class AdvanceAnalytics
      */
     public static function delete_stat_table($sql)
     {
-        $advance_stat_table = self::$advance_stat_table_name;
+        $advance_stat_table = self::advance_stat_table_name();
 
         $sql[] = "DROP TABLE IF EXISTS $advance_stat_table";
 
@@ -100,7 +101,7 @@ class AdvanceAnalytics
      */
     public static function delete_mu_stat_table($tables)
     {
-        $tables[] = self::$advance_stat_table_name;
+        $tables[] = self::advance_stat_table_name();
 
         return $tables;
     }
@@ -117,7 +118,7 @@ class AdvanceAnalytics
             $collate = $wpdb->get_charset_collate();
         }
 
-        $advance_stat_table = self::$advance_stat_table_name;
+        $advance_stat_table = self::advance_stat_table_name();
 
         $sql = "CREATE TABLE IF NOT EXISTS $advance_stat_table (
         `date` date NOT NULL,
