@@ -207,14 +207,15 @@ class Charts
      */
     public static function conversion_rate_last_30_days()
     {
+        $filter_by_optin = !empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
         $cache_key = md5(self::conversion_rate_last_30_days);
 
         $data = get_transient($cache_key);
 
         if ($data === false) {
-            $data = array_reduce(self::last_30_days(), function ($carry, $item) {
-                $conversions = AnalyticsRepository::get_stat_count_by_date('conversion', $item);
-                $impressions = AnalyticsRepository::get_stat_count_by_date('impression', $item);
+            $data = array_reduce(self::last_30_days(), function ($carry, $item) use ($filter_by_optin) {
+                $conversions = AnalyticsRepository::get_stat_count_by_date('conversion', $item, $filter_by_optin);
+                $impressions = AnalyticsRepository::get_stat_count_by_date('impression', $item, $filter_by_optin);
                 $carry[] = (0 == $conversions) || (0 == $impressions) ? '0' : number_format(($conversions / $impressions) * 100, 2);
                 return $carry;
             });
@@ -232,18 +233,10 @@ class Charts
      */
     public static function total_conversion_rate_last_30_days()
     {
-        $cache_key = md5(self::total_conversion_rate_last_30_days);
+        $conversions = self::total_subscribers_last_30_days();
+        $impressions = self::total_impression_last_30_days();
 
-        $data = get_transient($cache_key);
-
-        if ($data === false) {
-            $conversions = self::total_subscribers_last_30_days();
-            $impressions = self::total_impression_last_30_days();
-
-            $data = (0 == $conversions) || (0 == $impressions) ? '0' : number_format(($conversions / $impressions) * 100, 2);
-
-            set_transient($cache_key, $data, HOUR_IN_SECONDS);
-        }
+        $data = (0 == $conversions) || (0 == $impressions) ? '0' : number_format(($conversions / $impressions) * 100, 2);
 
         return $data;
     }
@@ -471,7 +464,7 @@ class Charts
                     }, {
                         type: 'column',
                         name: '<?php _e('Subscribers', 'mailoptin'); ?>',
-                        data: [<?php echo implode(',', self::subscribers_last_30_days()); ?>],
+                        data: [<?php echo implode(',', self::subscribers_last_30_days()); ?>]
                     }, {
                         type: 'spline',
                         name: '<?php _e('Conversion Rate', 'mailoptin'); ?>',
