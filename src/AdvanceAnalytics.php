@@ -133,6 +133,8 @@ class AdvanceAnalytics
         )  $collate;
 		";
 
+        var_dump($sql);
+
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
         dbDelta($sql);
