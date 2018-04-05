@@ -14,7 +14,7 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function top_converting_optins()
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
         $limit = apply_filters('mo_top_converting_optins_limit', 10);
 
         return self::wpdb()->get_results(
@@ -33,7 +33,7 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function top_optin_conversion_pages()
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
         $limit = apply_filters('mo_top_optin_conversion_pages_limit', 10);
 
         return self::wpdb()->get_results(
@@ -52,7 +52,7 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function top_impressive_optins()
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
         $limit = apply_filters('mo_top_impressive_optins_limit', 10);
 
         return self::wpdb()->get_results(
@@ -75,7 +75,7 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function get_stat_count_by_date($stat_type, $date, $optin_id = null)
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
         $sql = "SELECT COUNT(*) FROM $table WHERE stat_type = '%s' AND date = '%s'";
         $args = array($stat_type, $date);
 
@@ -127,7 +127,7 @@ class AnalyticsRepository extends AbstractRepository
     public static function add($type, $data)
     {
         $response = parent::wpdb()->insert(
-            AdvanceAnalytics::$advance_stat_table_name,
+            AdvanceAnalytics::advance_stat_table_name(),
             array(
                 'date' => date_i18n('Y-m-d'),
                 'stat_type' => $type,
@@ -159,7 +159,7 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function get_by_stat_type($stat_type)
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
 
         return self::wpdb()->get_results(
             self::wpdb()->prepare("SELECT * FROM $table WHERE stat_type = '%s'", $stat_type),
@@ -176,7 +176,7 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function get_by_optin_id($optin_id)
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
 
         return self::wpdb()->get_row(
             self::wpdb()->prepare("SELECT * FROM $table WHERE optin_id = %d", $optin_id),
@@ -194,7 +194,7 @@ class AnalyticsRepository extends AbstractRepository
     public static function delete_by_date($stat_date)
     {
         return parent::wpdb()->delete(
-            AdvanceAnalytics::$advance_stat_table_name,
+            AdvanceAnalytics::advance_stat_table_name(),
             array('date' => $stat_date),
             array('%s')
         );
@@ -210,7 +210,7 @@ class AnalyticsRepository extends AbstractRepository
     public static function delete_by_stat_type($stat_type)
     {
         return parent::wpdb()->delete(
-            AdvanceAnalytics::$advance_stat_table_name,
+            AdvanceAnalytics::advance_stat_table_name(),
             array('stat_type' => $stat_type),
             array('%s')
         );
@@ -223,7 +223,7 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function delete_all_record()
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
         return parent::wpdb()->query(
             "truncate $table"
         );

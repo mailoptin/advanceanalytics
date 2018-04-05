@@ -22,7 +22,7 @@ class Cron extends AbstractRepository
      */
     public function cleanup_old_stat()
     {
-        $table = AdvanceAnalytics::$advance_stat_table_name;
+        $table = AdvanceAnalytics::advance_stat_table_name();
 
         return self::wpdb()->query(
             "DELETE FROM $table WHERE DATEDIFF(NOW(), date) >= 40"
