@@ -120,7 +120,7 @@ class AdvanceAnalytics
         $advance_stat_table = self::$advance_stat_table_name;
 
         $sql = "CREATE TABLE IF NOT EXISTS $advance_stat_table (
-        date date NOT NULL,
+        `date` date NOT NULL,
         stat_type varchar(20) NOT NULL,
         optin_id int(10) NOT NULL DEFAULT '0',
         optin_type varchar(50) NOT NULL,
