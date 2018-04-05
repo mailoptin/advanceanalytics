@@ -137,7 +137,8 @@ class AnalyticsRepositoryTest extends WP_UnitTestCase
         $this->addConversionAlternate();
 
         $result = AnalyticsRepository::top_optin_conversion_pages();
-        $this->assertSame('http://goal.dev/', $result[0]);
+
+        $this->assertSame('http://goal.dev/', $result[0]['conversion_page']);
         
     }
 
@@ -153,6 +154,6 @@ class AnalyticsRepositoryTest extends WP_UnitTestCase
         $this->addConversionAlternate();
 
         $result = AnalyticsRepository::top_converting_optins();
-        $this->assertSame(15, absint($result[0]));
+        $this->assertSame(15, absint($result[0]['optin_id']));
     }
 }

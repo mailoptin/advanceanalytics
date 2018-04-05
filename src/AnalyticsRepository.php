@@ -147,7 +147,7 @@ class AnalyticsRepository extends AbstractRepository
             )
         );
 
-        return !$response ? $response : self::wpdb()->insert_id;
+        return !$response ? $response : absint($data['optin_id']);
     }
 
     /**
@@ -155,7 +155,7 @@ class AnalyticsRepository extends AbstractRepository
      *
      * @param mixed $stat_type
      *
-     * @return array|null|object|void
+     * @return array|null|object
      */
     public static function get_by_stat_type($stat_type)
     {
@@ -172,7 +172,7 @@ class AnalyticsRepository extends AbstractRepository
      *
      * @param mixed $id
      *
-     * @return array|null|object|void
+     * @return array|null|object
      */
     public static function get_by_optin_id($optin_id)
     {
