@@ -130,10 +130,7 @@ class AdvanceAnalytics
         KEY optin_id (optin_id),
         KEY optin_type (optin_type),
         KEY conversion_page (conversion_page)
-        )  $collate;
-		";
-
-        var_dump($sql);
+        )  $collate;";
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
