@@ -8,7 +8,7 @@ class AdvanceAnalytics
 {
     public function __construct()
     {
-        if (!defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
+        if ( ! defined('MAILOPTIN_DETACH_LIBSODIUM')) return;
 
         // hooking into "mo_create_database_tables" filter didn't work hence this workaround.
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array(__CLASS__, 'create_stat_table'));
@@ -49,12 +49,16 @@ class AdvanceAnalytics
      */
     public function track_impressions($requestBody, $optin_campaign_id)
     {
+        $optin_type = OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id);
+
+        if (empty($optin_type)) return;
+
         AnalyticsRepository::add_impression(
             array(
-                'optin_id' => $optin_campaign_id,
-                'optin_type' => OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id),
+                'optin_id'        => $optin_campaign_id,
+                'optin_type'      => $optin_type,
                 'conversion_page' => $requestBody['conversion_page'],
-                'referrer' => $requestBody['referrer']
+                'referrer'        => $requestBody['referrer']
             )
         );
     }
@@ -68,14 +72,14 @@ class AdvanceAnalytics
     public function track_conversions($data, $optin_campaign_id)
     {
         // skip if optin campaign Id isn't defined.
-        if (!isset($optin_campaign_id) || empty($optin_campaign_id) || $optin_campaign_id === 0) return;
+        if ( ! isset($optin_campaign_id) || empty($optin_campaign_id) || $optin_campaign_id === 0) return;
 
         AnalyticsRepository::add_conversion(
             array(
-                'optin_id' => $optin_campaign_id,
-                'optin_type' => OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id),
+                'optin_id'        => $optin_campaign_id,
+                'optin_type'      => OptinCampaignsRepository::get_optin_campaign_type($optin_campaign_id),
                 'conversion_page' => $data['conversion_page'],
-                'referrer' => $data['referrer']
+                'referrer'        => $data['referrer']
             )
         );
     }
