@@ -1,7 +1,7 @@
 {
   "name": "mailoptin/advanceanalytics",
   "description": "Advance Analytics",
-  "type": "library",
+  "type": "wordpress-plugin",
   "autoload": {
     "psr-4": {
       "MailOptin\\AdvanceAnalytics\\": "src/"
@@ -13,6 +13,7 @@
     }
   },
   "require": {
+    "composer/installers": "~1.0",
     "mailoptin/core": "^0.1-dev"
   }
 }
