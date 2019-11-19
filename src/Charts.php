@@ -263,7 +263,7 @@ class Charts
                 $occurence = $page['occurrence'];
 
                 $title_or_url = self::post_url_to_title($url);
-                $carry .= sprintf("%s{$title_or_url}%s %s", "<li><a href=\"$url\" target='_blank'>", '</a>', "($occurence)</li>");
+                $carry .= @sprintf("%s{$title_or_url}%s %s", "<li><a href=\"$url\" target='_blank'>", '</a>', "($occurence)</li>");
                 return $carry;
             });
         } else {
