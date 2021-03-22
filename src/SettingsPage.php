@@ -163,7 +163,7 @@ class SettingsPage extends AbstractSettingsPage
         echo '<form id="mo-refresh-stat" method="post" class="mo-inline">';
         wp_nonce_field('mo_chart_settings_page');
         echo '<input type="hidden" name="mo_process_form" value="refresh_stat">';
-        submit_button(__('Refresh Analytics', 'mailoptin'), 'primary', 'submit', false);
+        submit_button(__('Refresh Analytics', 'mailoptin'), 'secondary', 'submit', false);
         echo '</form>';
     }
 
@@ -175,7 +175,7 @@ class SettingsPage extends AbstractSettingsPage
         echo '<form method="post" id="mo-clear-stat" class="mo-inline" style="margin-left: 10px">';
         wp_nonce_field('mo_chart_settings_page');
         echo '<input type="hidden" name="mo_process_form" value="clear_stat">';
-        submit_button(__('Clear Stats', 'mailoptin'), 'primary', 'submit', false);
+        submit_button(__('Clear Stats', 'mailoptin'), 'secondary', 'submit', false);
         echo '</form>';
     }
 
