@@ -125,6 +125,7 @@ class AdvanceAnalytics
         $advance_stat_table = self::advance_stat_table_name();
 
         $sql = "CREATE TABLE IF NOT EXISTS $advance_stat_table (
+        id BIGINT NOT NULL PRIMARY KEY AUTO_INCREMENT,
         date date NOT NULL,
         stat_type varchar(20) NOT NULL,
         optin_id int(10) NOT NULL DEFAULT '0',
