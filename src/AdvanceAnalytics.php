@@ -12,6 +12,8 @@ class AdvanceAnalytics
 
         // hooking into "mo_create_database_tables" filter didn't work hence this workaround.
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array(__CLASS__, 'create_stat_table'));
+        // there are times the register activation hook doesn't trigger. so let's run it again.
+        add_action('admin_init', array(__CLASS__, 'create_stat_table'));
 
         $this->load_extension_classes();
 
