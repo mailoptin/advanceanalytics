@@ -3,6 +3,7 @@
 namespace MailOptin\AdvanceAnalytics;
 
 use MailOptin\Core\Repositories\OptinCampaignsRepository;
+use function MailOptin\Core\is_mailoptin_admin_page;
 
 class AdvanceAnalytics
 {
@@ -13,7 +14,8 @@ class AdvanceAnalytics
         // hooking into "mo_create_database_tables" filter didn't work hence this workaround.
         register_activation_hook(MAILOPTIN_SYSTEM_FILE_PATH, array(__CLASS__, 'create_stat_table'));
         // there are times the register activation hook doesn't trigger. so let's run it again.
-        add_action('admin_init', array(__CLASS__, 'create_stat_table'));
+
+        add_action('admin_init', array(__CLASS__, 'create_stat_table_if_missing'));
 
         $this->load_extension_classes();
 
@@ -110,6 +112,20 @@ class AdvanceAnalytics
         $tables[] = self::advance_stat_table_name();
 
         return $tables;
+    }
+
+    public static function create_stat_table_if_missing()
+    {
+        if ( ! is_mailoptin_admin_page()) return;
+
+        global $wpdb;
+
+        $table_name = AdvanceAnalytics::advance_stat_table_name();
+        $query      = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table_name));
+
+        if ( ! $wpdb->get_var($query) == $table_name) {
+            self::create_stat_table();
+        }
     }
 
     /**
