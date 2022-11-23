@@ -123,7 +123,7 @@ class AdvanceAnalytics
         $table_name = AdvanceAnalytics::advance_stat_table_name();
         $query      = $wpdb->prepare('SHOW TABLES LIKE %s', $wpdb->esc_like($table_name));
 
-        if ( ! $wpdb->get_var($query) == $table_name) {
+        if ( ! ($wpdb->get_var($query) == $table_name)) {
             self::create_stat_table();
         }
     }
@@ -153,7 +153,7 @@ class AdvanceAnalytics
         KEY date (date),
         KEY optin_id (optin_id),
         KEY optin_type (optin_type),
-        KEY conversion_page (conversion_page)
+        KEY conversion_page (conversion_page(191))
         )  $collate;
 		";
 
