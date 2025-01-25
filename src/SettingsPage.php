@@ -47,7 +47,7 @@ class SettingsPage extends AbstractSettingsPage
         $select_dropdown = array_reduce($optins, function ($carry, $optin) {
             $id = absint($optin['id']);
             $name = $optin['name'];
-            $selected = selected(@$_POST['mo_analytics_filter'], $id, false);
+            $selected = selected($_POST['mo_analytics_filter'] ?? '', $id, false);
             $carry .= "<option value='$id' $selected>$name</option>";
             return $carry;
         }, $initial);
