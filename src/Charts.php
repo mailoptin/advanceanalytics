@@ -15,7 +15,6 @@ class Charts
     const total_conversion_rate_last_30_days = 'mo_total_conversion_rate_last_30_days';
     const top_converting_page_chart = 'mo_top_converting_page_chart';
     const top_converting_optin_chart = 'mo_top_converting_optin_chart';
-    const post_url_to_title = 'mo_post_url_to_title';
     const top_displayed_optin_chart = 'mo_top_displayed_optin_chart';
 
     /**
@@ -27,25 +26,18 @@ class Charts
      */
     public static function post_url_to_title($url)
     {
-        $cache_key = md5(md5(self::post_url_to_title . "_$url"));
+        $cache_key = md5('mo_post_url_title_' . $url);
+
         $title = get_transient($cache_key);
 
         if ($title === false) {
-            if (($id = url_to_postid($url)) !== 0) {
-                $title = get_the_title($id);
-            } else {
-                $title = $url;
-            }
+
+            $title = ($id = url_to_postid($url)) !== 0 ? get_the_title($id) : $url;
 
             set_transient($cache_key, $title, HOUR_IN_SECONDS);
         }
 
-
-        if (($id = url_to_postid($url)) !== 0) {
-            return get_the_title($id);
-        } else {
-            return $url;
-        }
+        return $title;
     }
 
     /**
@@ -53,14 +45,14 @@ class Charts
      */
     public static function clear_cache()
     {
-        $format1 = "Y-m-d";
-        $format2 = "M jS";
+        $format1     = "Y-m-d";
+        $format2     = "M jS";
         $quote_wrap1 = 'false';
         $quote_wrap2 = 'true';
         delete_transient(md5("mo_last_30_days_{$format1}_{$quote_wrap1}"));
         delete_transient(md5("mo_last_30_days_{$format2}_{$quote_wrap2}"));
 
-        $filter_by_optin = !empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
+        $filter_by_optin = ! empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
         delete_transient(md5(self::imp_last_30_days . "$filter_by_optin"));
         delete_transient(md5(self::subscribers_last_30_days . "$filter_by_optin"));
         delete_transient(md5(self::total_imp_last_30_days . "$filter_by_optin"));
@@ -83,7 +75,7 @@ class Charts
     public static function last_30_days($format = 'Y-m-d', $quote_wrap = false)
     {
         $quote_wrap_string = ($quote_wrap) ? 'true' : 'false';
-        $cache_key = md5("mo_last_30_days_{$format}_{$quote_wrap_string}");
+        $cache_key         = md5("mo_last_30_days_{$format}_{$quote_wrap_string}");
 
         $data = get_transient($cache_key);
 
@@ -110,14 +102,15 @@ class Charts
      */
     public static function impression_last_30_days()
     {
-        $filter_by_optin = !empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
-        $cache_key = md5(self::imp_last_30_days . "$filter_by_optin");
+        $filter_by_optin = ! empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
+        $cache_key       = md5(self::imp_last_30_days . "$filter_by_optin");
 
         $data = get_transient($cache_key);
 
         if ($data === false) {
             $data = array_reduce(self::last_30_days(), function ($carry, $date) use ($filter_by_optin) {
                 $carry[] = absint(AnalyticsRepository::get_stat_count_by_date('impression', $date, $filter_by_optin));
+
                 return $carry;
             });
 
@@ -134,14 +127,15 @@ class Charts
      */
     public static function total_impression_last_30_days()
     {
-        $filter_by_optin = !empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
-        $cache_key = md5(self::total_imp_last_30_days . "$filter_by_optin");
+        $filter_by_optin = ! empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
+        $cache_key       = md5(self::total_imp_last_30_days . "$filter_by_optin");
 
         $data = get_transient($cache_key);
 
         if ($data === false) {
             $data = array_reduce(self::last_30_days(), function ($carry, $date) use ($filter_by_optin) {
                 $carry += absint(AnalyticsRepository::get_stat_count_by_date('impression', $date, $filter_by_optin));
+
                 return $carry;
             });
 
@@ -158,14 +152,15 @@ class Charts
      */
     public static function subscribers_last_30_days()
     {
-        $filter_by_optin = !empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
-        $cache_key = md5(self::subscribers_last_30_days . "$filter_by_optin");
+        $filter_by_optin = ! empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
+        $cache_key       = md5(self::subscribers_last_30_days . "$filter_by_optin");
 
         $data = get_transient($cache_key);
 
         if ($data === false) {
             $data = array_reduce(self::last_30_days(), function ($carry, $date) use ($filter_by_optin) {
                 $carry[] = absint(AnalyticsRepository::get_stat_count_by_date('conversion', $date, $filter_by_optin));
+
                 return $carry;
             });
 
@@ -182,14 +177,15 @@ class Charts
      */
     public static function total_subscribers_last_30_days()
     {
-        $filter_by_optin = !empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
-        $cache_key = md5(self::total_subscribers_last_30_days . "$filter_by_optin");
+        $filter_by_optin = ! empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
+        $cache_key       = md5(self::total_subscribers_last_30_days . "$filter_by_optin");
 
         $data = get_transient($cache_key);
 
         if ($data === false) {
             $data = array_reduce(self::last_30_days(), function ($carry, $item) use ($filter_by_optin) {
                 $carry += absint(AnalyticsRepository::get_stat_count_by_date('conversion', $item, $filter_by_optin));
+
                 return $carry;
             });
 
@@ -206,8 +202,8 @@ class Charts
      */
     public static function conversion_rate_last_30_days()
     {
-        $filter_by_optin = !empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
-        $cache_key = md5(self::conversion_rate_last_30_days);
+        $filter_by_optin = ! empty($_POST['mo_analytics_filter']) ? absint($_POST['mo_analytics_filter']) : null;
+        $cache_key       = md5(self::conversion_rate_last_30_days);
 
         $data = get_transient($cache_key);
 
@@ -215,7 +211,8 @@ class Charts
             $data = array_reduce(self::last_30_days(), function ($carry, $item) use ($filter_by_optin) {
                 $conversions = AnalyticsRepository::get_stat_count_by_date('conversion', $item, $filter_by_optin);
                 $impressions = AnalyticsRepository::get_stat_count_by_date('impression', $item, $filter_by_optin);
-                $carry[] = (0 == $conversions) || (0 == $impressions) ? '0' : number_format(($conversions / $impressions) * 100, 2);
+                $carry[]     = (0 == $conversions) || (0 == $impressions) ? '0' : number_format(($conversions / $impressions) * 100, 2);
+
                 return $carry;
             });
 
@@ -248,7 +245,7 @@ class Charts
     public static function top_converting_page_chart()
     {
         $cache_key = md5(self::top_converting_page_chart);
-        $pages = get_transient($cache_key);
+        $pages     = get_transient($cache_key);
 
         if ($pages === false) {
             $pages = AnalyticsRepository::top_optin_conversion_pages();
@@ -257,13 +254,14 @@ class Charts
 
         $html = '<div style="text-align:left"><ol>';
 
-        if (is_array($pages) && !empty($pages)) {
+        if (is_array($pages) && ! empty($pages)) {
             $html .= array_reduce($pages, function ($carry, $page) {
-                $url = $page['conversion_page'];
+                $url       = $page['conversion_page'];
                 $occurence = $page['occurrence'];
 
                 $title_or_url = self::post_url_to_title($url);
-                $carry .= @sprintf("%s{$title_or_url}%s %s", "<li><a href=\"$url\" target='_blank'>", '</a>', "($occurence)</li>");
+                $carry        .= @sprintf("%s{$title_or_url}%s %s", "<li><a href=\"$url\" target='_blank'>", '</a>', "($occurence)</li>");
+
                 return $carry;
             });
         } else {
@@ -283,7 +281,7 @@ class Charts
     public static function top_displayed_optin_chart()
     {
         $cache_key = md5(self::top_displayed_optin_chart);
-        $optins = get_transient($cache_key);
+        $optins    = get_transient($cache_key);
 
         if ($optins === false) {
             $optins = AnalyticsRepository::top_impressive_optins();
@@ -292,13 +290,13 @@ class Charts
 
         $html = '<div style="text-align:left"><ol>';
 
-        if (is_array($optins) && !empty($optins)) {
+        if (is_array($optins) && ! empty($optins)) {
             $html .= array_reduce($optins, function ($carry, $optin) {
 
-                $optin_id = absint($optin['optin_id']);
+                $optin_id    = absint($optin['optin_id']);
                 $optin_title = OptinCampaignsRepository::get_optin_campaign_name($optin_id);
-                $optin_url = OptinCampaign_List::_optin_campaign_customize_url($optin_id);
-                $occurrence = $optin['occurrence'];
+                $optin_url   = OptinCampaign_List::_optin_campaign_customize_url($optin_id);
+                $occurrence  = $optin['occurrence'];
 
                 $carry .= "<li><a href=\"{$optin_url}\" target='_blank'>{$optin_title}</a> ($occurrence)</li>";
 
@@ -323,23 +321,23 @@ class Charts
         $html = '<div style="text-align:left"><ol>';
 
         $cache_key = md5(self::top_converting_optin_chart);
-        $optins = get_transient($cache_key);
+        $optins    = get_transient($cache_key);
 
         if ($optins === false) {
             $optins = AnalyticsRepository::top_converting_optins();
             set_transient($cache_key, $optins, HOUR_IN_SECONDS);
         }
 
-        if (!is_array($optins) || empty($optins)) {
+        if ( ! is_array($optins) || empty($optins)) {
             $html .= apply_filters('mo_top_converting_optin_chart_no_data', __('No data currently available.', 'mailoptin'));
         }
 
         foreach ($optins as $optin) {
-            $optin_id = absint($optin['optin_id']);
+            $optin_id    = absint($optin['optin_id']);
             $optin_title = OptinCampaignsRepository::get_optin_campaign_name($optin_id);
-            $optin_url = OptinCampaign_List::_optin_campaign_customize_url($optin_id);
-            $occurrence = $optin['occurrence'];
-            $html .= sprintf("%s{$optin_title}%s %s", "<li><a href=\"$optin_url\" target='_blank'>", '</a>', "($occurrence)</li>");
+            $optin_url   = OptinCampaign_List::_optin_campaign_customize_url($optin_id);
+            $occurrence  = $optin['occurrence'];
+            $html        .= sprintf("%s{$optin_title}%s %s", "<li><a href=\"$optin_url\" target='_blank'>", '</a>', "($occurrence)</li>");
         }
 
         $html .= '</ol></div>';
