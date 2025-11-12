@@ -260,7 +260,7 @@ class Charts
                 $occurence = $page['occurrence'];
 
                 $title_or_url = self::post_url_to_title($url);
-                $carry        .= @sprintf("%s{$title_or_url}%s %s", "<li><a href=\"$url\" target='_blank'>", '</a>', "($occurence)</li>");
+                $carry        .= sprintf('%s%s%s', "<li><a href=\"$url\" target='_blank'>", $title_or_url, "</a> ($occurence)</li>");
 
                 return $carry;
             });
@@ -337,7 +337,7 @@ class Charts
             $optin_title = OptinCampaignsRepository::get_optin_campaign_name($optin_id);
             $optin_url   = OptinCampaign_List::_optin_campaign_customize_url($optin_id);
             $occurrence  = $optin['occurrence'];
-            $html        .= sprintf("%s{$optin_title}%s %s", "<li><a href=\"$optin_url\" target='_blank'>", '</a>', "($occurrence)</li>");
+            $html        .= sprintf('%s%s%s', "<li><a href=\"$optin_url\" target='_blank'>", $optin_title, "</a> ($occurrence)</li>");
         }
 
         $html .= '</ol></div>';
