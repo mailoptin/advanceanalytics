@@ -14,11 +14,6 @@ if (!defined('ABSPATH')) {
 
 class SettingsPage extends AbstractSettingsPage
 {
-    /**
-     * @var SettingsPage
-     */
-    protected $conversions_instance;
-
     public function __construct()
     {
         add_action('mailoptin_advance_analytics_settings_page', [$this, 'init']);
