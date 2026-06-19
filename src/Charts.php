@@ -351,7 +351,7 @@ class Charts
     public static function impression_chart()
     {
         ?>
-        <div id="mo_impression_chart_container" style="width:100%; height:400px;"></div>
+        <div id="mo_impression_chart_container" class="highcharts-light" style="width:100%; height:400px;"></div>
         <script>
             jQuery(function () {
                 var myChart = Highcharts.chart('mo_impression_chart_container', {
@@ -379,7 +379,7 @@ class Charts
     public static function conversion_chart()
     {
         ?>
-        <div id="mo_subscriber_chart_container" style="width:100%; height:400px;"></div>
+        <div id="mo_subscriber_chart_container" class="highcharts-light" style="width:100%; height:400px;"></div>
         <script>
             jQuery(function () {
                 var myChart = Highcharts.chart('mo_subscriber_chart_container', {
@@ -407,7 +407,7 @@ class Charts
     public static function conversion_rate_chart()
     {
         ?>
-        <div id="mo_conversion_rate_chart_container" style="width:100%; height:400px;"></div>
+        <div id="mo_conversion_rate_chart_container" class="highcharts-light" style="width:100%; height:400px;"></div>
         <script>
             jQuery(function () {
                 var myChart = Highcharts.chart('mo_conversion_rate_chart_container', {
@@ -435,8 +435,9 @@ class Charts
      */
     public static function stat_overview_chart()
     {
+        // https://www.highcharts.com/docs/dashboards/light-dark-theme
         ?>
-        <div id="mo_stat_overview_chart_container" style="width:100%; height:400px;"></div>
+        <div id="mo_stat_overview_chart_container" class="highcharts-light" style="width:100%; height:400px;"></div>
         <script>
             jQuery(function () {
                 Highcharts.chart('mo_stat_overview_chart_container', {
