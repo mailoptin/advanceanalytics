@@ -133,7 +133,7 @@ class AdvanceAnalytics
                 'conversion_page' => $data['conversion_page'] ?? '',
                 'referrer'        => $data['referrer'] ?? '',
                 // Sent with the subscription by mailoptin.js; not part of the lead data.
-                'tz'              => isset($_REQUEST['optin_data']['tz']) && is_string($_REQUEST['optin_data']['tz']) ? sanitize_text_field(wp_unslash($_REQUEST['optin_data']['tz'])) : ''
+                'tz'              => isset($_REQUEST['optin_data']['_mo_tz']) && is_string($_REQUEST['optin_data']['_mo_tz']) ? sanitize_text_field(wp_unslash($_REQUEST['optin_data']['_mo_tz'])) : ''
             )
         );
     }

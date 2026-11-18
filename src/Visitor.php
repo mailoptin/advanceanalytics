@@ -38,7 +38,11 @@ class Visitor
      */
     public static function country($time_zone = '')
     {
-        foreach (['HTTP_CF_IPCOUNTRY', 'HTTP_CLOUDFRONT_VIEWER_COUNTRY', 'HTTP_X_COUNTRY_CODE', 'HTTP_X_VERCEL_IP_COUNTRY', 'HTTP_FASTLY_GEO_COUNTRY_CODE', 'GEOIP_COUNTRY_CODE', 'HTTP_X_GEO_COUNTRY'] as $header) {
+        // The CDNs' own headers, and the web server's GeoIP module. A visitor could send these headers
+        // themselves where no CDN is in front, which only skews stats (as a script could anyway); sites can
+        // narrow the list.
+        $headers = (array)apply_filters('mailoptin_stats_country_headers', ['HTTP_CF_IPCOUNTRY', 'HTTP_CLOUDFRONT_VIEWER_COUNTRY', 'HTTP_X_VERCEL_IP_COUNTRY', 'HTTP_FASTLY_GEO_COUNTRY_CODE', 'GEOIP_COUNTRY_CODE']);
+        foreach ($headers as $header) {
             $code = self::clean_code($_SERVER[$header] ?? '');
             if ('' !== $code) return $code;
         }
@@ -61,6 +65,20 @@ class Visitor
         $time_zone = (string)$time_zone;
 
         if ('' === $time_zone || strlen($time_zone) > 64 || ! preg_match('#^[A-Za-z_]+(/[A-Za-z0-9_+\-]+){1,2}$#', $time_zone)) return '';
+
+        // Old names some browsers still report, which some PHP builds no longer know.
+        $renamed = [
+            'Asia/Calcutta'      => 'Asia/Kolkata',
+            'Asia/Saigon'        => 'Asia/Ho_Chi_Minh',
+            'Asia/Katmandu'      => 'Asia/Kathmandu',
+            'Asia/Rangoon'       => 'Asia/Yangon',
+            'Europe/Kiev'        => 'Europe/Kyiv',
+            'America/Buenos_Aires' => 'America/Argentina/Buenos_Aires',
+            'Asia/Ulan_Bator'    => 'Asia/Ulaanbaatar',
+            'Pacific/Truk'       => 'Pacific/Chuuk',
+            'Atlantic/Faeroe'    => 'Atlantic/Faroe',
+        ];
+        $time_zone = $renamed[$time_zone] ?? $time_zone;
 
         try {
             $location = (new \DateTimeZone($time_zone))->getLocation();

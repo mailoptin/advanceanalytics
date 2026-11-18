@@ -63,8 +63,8 @@ class StatsPage
 
     public function render()
     {
+        // Summing is cron's job (under a lock); days it hasn't reached are read live.
         Store::maybe_upgrade();
-        Store::roll_up();
 
         $report   = Report::last_days($this->period, $this->optin_id);
         $previous = $report->previous();
@@ -206,7 +206,9 @@ class StatsPage
         echo '</div>';
 
         // Without a full period before, say so once rather than in every tile.
-        if ( ! $had_before && '' !== $first) {
+        if ( ! $had_before && 365 === $this->period) {
+            printf('<p class="mo-stats-compare-note">%s</p>', esc_html__('There\'s no comparison for 12 months: daily totals are kept for 13 months.', 'mailoptin'));
+        } elseif ( ! $had_before && '' !== $first) {
             $from = gmdate('Y-m-d', strtotime($first . ' +' . (2 * $this->period) . ' days'));
             printf(
                 '<p class="mo-stats-compare-note">%s</p>',
@@ -260,7 +262,7 @@ class StatsPage
         echo '</div>';
 
         // The same numbers as a table, for screen readers.
-        echo '<table class="screen-reader-text"><caption>' . esc_html__('Subscribers and views per day', 'mailoptin') . '</caption><tr><th>' . esc_html__('Day', 'mailoptin') . '</th><th>' . esc_html__('Subscribers', 'mailoptin') . '</th><th>' . esc_html__('Views', 'mailoptin') . '</th></tr>';
+        echo '<table class="screen-reader-text"><caption>' . esc_html(sprintf(__('%s and views per day', 'mailoptin'), $this->conversions_label())) . '</caption><tr><th>' . esc_html__('Day', 'mailoptin') . '</th><th>' . esc_html($this->conversions_label()) . '</th><th>' . esc_html__('Views', 'mailoptin') . '</th></tr>';
         foreach ($points as $p) printf('<tr><td>%s</td><td>%d</td><td>%d</td></tr>', esc_html($p[0]), $p[1], $p[2]);
         echo '</table></div>';
     }
@@ -291,7 +293,7 @@ class StatsPage
             return round($pad['t'] + (1 - $v / $top) * ($h - $pad['t'] - $pad['b']), 1);
         };
 
-        $out = sprintf('<svg viewBox="0 0 %d %d" role="img" aria-label="%s" focusable="false">', $w, $h, esc_attr__('Subscribers per day', 'mailoptin'));
+        $out = sprintf('<svg viewBox="0 0 %d %d" role="img" aria-label="%s" focusable="false">', $w, $h, esc_attr(sprintf(__('%s per day', 'mailoptin'), $this->conversions_label())));
 
         for ($k = 0; $k <= $ticks_y; $k++) {
             $v   = $k * $step;
@@ -562,10 +564,6 @@ class StatsPage
         ?>
         <script>
             (function () {
-                document.querySelectorAll('.mo-stats-filters select').forEach(function (s) {
-                    s.addEventListener('change', function () { s.form.submit(); });
-                });
-                document.querySelectorAll('.mo-stats-apply').forEach(function (b) { b.style.display = 'none'; });
 
                 document.querySelectorAll('.mo-stats-plot').forEach(function (plot) {
                     var points = JSON.parse(plot.getAttribute('data-points') || '[]'), tip = plot.querySelector('.mo-stats-tooltip');
@@ -614,9 +612,10 @@ class StatsPage
             .mo-stats-crumb a{text-decoration:none}
             .mo-stats-sub{color:var(--muted);margin:4px 0 0}
             .mo-stats-filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-            .mo-stats-select{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 0 0 12px;border:1px solid #8c8f94;border-radius:6px;background:#fff}
+            .mo-stats-select{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 0 0 12px;border:1px solid #8c8f94;border-radius:6px;background:#fff}
             .mo-stats-select span{color:var(--muted)}
-            .mo-stats-select select{border:0;box-shadow:none;background-color:transparent;font-weight:600;color:var(--ink);min-height:38px;max-width:240px}
+            .mo-stats-select select{border:0;box-shadow:none;background-color:transparent;font-weight:600;color:var(--ink);min-height:42px;max-width:240px}
+            .mo-stats-apply.button{min-height:44px;padding:0 16px}
             .mo-stats-select:focus-within{outline:2px solid var(--blue);outline-offset:1px}
             .mo-stats-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
             .mo-stats-compare-note{color:var(--muted);margin:-4px 0 16px}
@@ -673,7 +672,7 @@ class StatsPage
             .mo-stats-empty p{color:var(--muted);margin:6px auto 0;max-width:460px}
             .mo-stats-footer{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:12px}
             .mo-stats-footer p{margin:0;max-width:760px}
-            .mo-stats-danger{color:var(--bad)!important;font-size:12px!important;min-height:32px}
+            .mo-stats-danger{color:var(--bad)!important;font-size:12px!important;min-height:44px}
             @media (max-width:782px){
                 .mo-stats-grid3{grid-template-columns:1fr;gap:12px}
                 .mo-stats-card{padding:16px}

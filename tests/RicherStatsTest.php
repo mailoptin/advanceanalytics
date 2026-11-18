@@ -60,6 +60,7 @@ class RicherStatsTest extends WP_UnitTestCase
         $this->assertSame('GB', Visitor::country_from_time_zone('Europe/London'));
         $this->assertSame('AR', Visitor::country_from_time_zone('America/Argentina/Buenos_Aires'), 'Three-part zones work.');
         $this->assertSame('', Visitor::country_from_time_zone('UTC'));
+        $this->assertSame('IN', Visitor::country_from_time_zone('Asia/Calcutta'), 'Old names browsers still send.');
         $this->assertSame('', Visitor::country_from_time_zone('../../etc/passwd'));
         $this->assertSame('', Visitor::country_from_time_zone('Mars/Olympus'));
 
@@ -148,13 +149,49 @@ class RicherStatsTest extends WP_UnitTestCase
         $this->rows($this->day(-41), 1, 'impression', 1);
         $this->rows($this->day(-39), 1, 'impression', 1);
         global $wpdb;
-        $wpdb->insert(Store::daily_table(), ['date' => $this->day(-401), 'optin_id' => 1, 'stat_type' => 'impression', 'dimension' => 'total', 'value' => '', 'count' => 3]);
-        $wpdb->insert(Store::daily_table(), ['date' => $this->day(-399), 'optin_id' => 1, 'stat_type' => 'impression', 'dimension' => 'total', 'value' => '', 'count' => 3]);
+        $wpdb->insert(Store::daily_table(), ['date' => $this->day(-401), 'optin_id' => 1, 'stat_type' => 'impression', 'dimension' => 'total', 'value' => '', 'value_hash' => md5(''), 'count' => 3]);
+        $wpdb->insert(Store::daily_table(), ['date' => $this->day(-399), 'optin_id' => 1, 'stat_type' => 'impression', 'dimension' => 'total', 'value' => '', 'value_hash' => md5(''), 'count' => 3]);
 
+        Store::clean_up();
+        $this->assertSame('2', $wpdb->get_var('SELECT COUNT(*) FROM ' . AdvanceAnalytics::advance_stat_table_name()), 'Nothing summed yet: no detail is deleted.');
+
+        update_option(Store::LAST_ROLLUP_OPTION, $this->day(-1));
         Store::clean_up();
 
         $this->assertSame('1', $wpdb->get_var('SELECT COUNT(*) FROM ' . AdvanceAnalytics::advance_stat_table_name()));
         $this->assertSame('1', $wpdb->get_var('SELECT COUNT(*) FROM ' . Store::daily_table()));
+    }
+
+    public function test_pages_differing_only_in_case_are_kept_apart()
+    {
+        $this->rows($this->day(-1), 5, 'impression', 3, 'desktop', 'GB', 'https://example.org/Blog/post');
+        $this->rows($this->day(-1), 5, 'impression', 2, 'desktop', 'GB', 'https://example.org/blog/post');
+
+        $this->assertTrue(Store::roll_up_day($this->day(-1)));
+
+        $pages = array_column(Report::last_days(7, 5)->breakdown('page'), 'impression', 'value');
+        $this->assertSame(['https://example.org/Blog/post' => 3, 'https://example.org/blog/post' => 2], $pages);
+        $this->assertSame(5, Report::last_days(7, 5)->totals()['impression']);
+    }
+
+    public function test_days_cron_has_not_reached_are_read_live()
+    {
+        $this->rows($this->day(-2), 6, 'impression', 4);
+        $this->rows($this->day(-1), 6, 'impression', 6);
+        update_option(Store::LAST_ROLLUP_OPTION, $this->day(-3));
+
+        $this->assertSame(10, Report::last_days(7, 6)->totals()['impression']);
+    }
+
+    public function test_views_are_kept_before_the_upgrade_has_run()
+    {
+        update_option(Store::DB_VERSION_OPTION, 1);
+        $this->assertNotFalse(\MailOptin\AdvanceAnalytics\AnalyticsRepository::add('impression', ['optin_id' => 9, 'optin_type' => 'lightbox', 'conversion_page' => str_repeat('é', 300), 'referrer' => '']));
+        update_option(Store::DB_VERSION_OPTION, Store::DB_VERSION);
+
+        global $wpdb;
+        $page = $wpdb->get_var('SELECT conversion_page FROM ' . AdvanceAnalytics::advance_stat_table_name() . ' WHERE optin_id = 9');
+        $this->assertSame(256, mb_strlen($page), 'Cut by characters, not bytes.');
     }
 
     protected function device_rows($phone_views, $phone_subs, $desktop_views, $desktop_subs)

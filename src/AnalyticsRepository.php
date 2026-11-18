@@ -133,30 +133,23 @@ class AnalyticsRepository extends AbstractRepository
      */
     public static function add($type, $data)
     {
-        $response = parent::wpdb()->insert(
-            AdvanceAnalytics::advance_stat_table_name(),
-            array(
-                'date'            => date_i18n('Y-m-d'),
-                'stat_type'       => $type,
-                'optin_id'        => absint($data['optin_id']),
-                'optin_type'      => $data['optin_type'],
-                'conversion_page' => substr((string)($data['conversion_page'] ?? ''), 0, 256),
-                'referrer'        => substr((string)($data['referrer'] ?? ''), 0, 256),
-                // What kind of device and which country: never the IP address or user agent itself.
-                'device'          => array_key_exists('device', $data) ? (string)$data['device'] : Visitor::device(),
-                'country'         => array_key_exists('country', $data) ? (string)$data['country'] : Visitor::country($data['tz'] ?? '')
-            ),
-            array(
-                '%s',
-                '%s',
-                '%d',
-                '%s',
-                '%s',
-                '%s',
-                '%s',
-                '%s'
-            )
+        $row = array(
+            'date'            => date_i18n('Y-m-d'),
+            'stat_type'       => $type,
+            'optin_id'        => absint($data['optin_id']),
+            'optin_type'      => $data['optin_type'],
+            'conversion_page' => mb_substr((string)($data['conversion_page'] ?? ''), 0, 256),
+            'referrer'        => mb_substr((string)($data['referrer'] ?? ''), 0, 256),
         );
+
+        // What kind of device and which country: never the IP address or user agent itself. Only once the
+        // columns exist: right after an update, before the upgrade has run, rows are written without them.
+        if (Store::has_new_columns()) {
+            $row['device']  = array_key_exists('device', $data) ? (string)$data['device'] : Visitor::device();
+            $row['country'] = array_key_exists('country', $data) ? (string)$data['country'] : Visitor::country($data['tz'] ?? '');
+        }
+
+        $response = parent::wpdb()->insert(AdvanceAnalytics::advance_stat_table_name(), $row, array_fill(0, count($row), '%s'));
 
         return ! $response ? $response : absint($data['optin_id']);
     }

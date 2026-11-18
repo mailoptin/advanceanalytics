@@ -13,6 +13,8 @@ class Cron extends AbstractRepository
     {
         add_action('init', array($this, 'create_schedule'));
         add_action('mo_advance_analytic_cleanup', array($this, 'cleanup_old_stat'));
+        // The first summing after an upgrade, and the rest of a run that ran out of time.
+        add_action(Store::ROLLUP_HOOK, [Store::class, 'roll_up']);
     }
 
     /**

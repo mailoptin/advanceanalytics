@@ -57,6 +57,9 @@ MailOptin\AdvanceAnalytics\AdvanceAnalytics::get_instance();
 
 MailOptin\Core\RegisterActivation\Base::run_install(false);
 \MailOptin\AdvanceAnalytics\AdvanceAnalytics::create_stat_table();
+// The daily table as this version defines it, whatever an earlier run left behind.
+$GLOBALS['wpdb']->query('DROP TABLE IF EXISTS ' . \MailOptin\AdvanceAnalytics\Store::daily_table());
+delete_option(\MailOptin\AdvanceAnalytics\Store::DB_VERSION_OPTION);
 \MailOptin\AdvanceAnalytics\Store::maybe_upgrade();
 global $wpdb;
 $wpdb->optin_campaignmeta = $wpdb->prefix . \MailOptin\Core\Core::optin_campaign_meta_table_name;

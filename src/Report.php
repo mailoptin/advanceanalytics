@@ -13,7 +13,8 @@ class Report
     public $optin_id;
 
     protected $today;
-    protected $today_rows = null;
+    /** Days read from the detail table, by date. */
+    protected $live = [];
 
     /**
      * @param string $start Y-m-d, first day included.
@@ -73,27 +74,31 @@ class Report
             if (isset($out[$key][$type])) $out[$key][$type] += (int)$n;
         };
 
-        // Finished days, from the daily totals.
-        $last_full = min($this->end, gmdate('Y-m-d', strtotime($this->today . ' -1 day')));
-        if ($this->start <= $last_full) {
+        // Days not summed yet (normally only today, more if cron is behind) are read from the detail
+        // table; never further back than it keeps.
+        $summed    = Store::rolled_up_to();
+        $live_from = max($this->start, gmdate('Y-m-d', strtotime($this->today . ' -' . Store::DETAIL_DAYS . ' days')));
+        if ('' !== $summed) $live_from = max($live_from, gmdate('Y-m-d', strtotime($summed . ' +1 day')));
+        $daily_end = min($this->end, gmdate('Y-m-d', strtotime($live_from . ' -1 day')));
+
+        if ($this->start <= $daily_end) {
             $table  = Store::daily_table();
             $select = ($by_date ? 'date, ' : '') . ($by_optin ? 'optin_id, ' : '');
-            $where  = $wpdb->prepare('date BETWEEN %s AND %s AND dimension = %s', $this->start, $last_full, $dimension);
+            $where  = $wpdb->prepare('date BETWEEN %s AND %s AND dimension = %s', $this->start, $daily_end, $dimension);
             if ($this->optin_id) $where .= $wpdb->prepare(' AND optin_id = %d', $this->optin_id);
 
-            $rows = $wpdb->get_results("SELECT {$select}value, stat_type, SUM(count) AS n FROM $table WHERE $where GROUP BY {$select}value, stat_type", ARRAY_A);
+            $rows = $wpdb->get_results("SELECT {$select}value, stat_type, SUM(count) AS n FROM $table WHERE $where GROUP BY {$select}value_hash, value, stat_type", ARRAY_A);
 
             foreach ((array)$rows as $r) {
                 $add($r['date'] ?? '', $r['optin_id'] ?? 0, $r['value'], $r['stat_type'], $r['n']);
             }
         }
 
-        // Today, live.
-        if ($this->start <= $this->today && $this->end >= $this->today) {
-            if (null === $this->today_rows) $this->today_rows = Store::day_from_detail($this->today, $this->optin_id);
+        for ($day = $live_from; $day <= min($this->end, $this->today); $day = gmdate('Y-m-d', strtotime($day . ' +1 day'))) {
+            if ( ! isset($this->live[$day])) $this->live[$day] = Store::day_from_detail_cached($day, $this->optin_id);
 
-            foreach ($this->today_rows as $r) {
-                if ($r[2] === $dimension) $add($this->today, $r[0], $r[3], $r[1], $r[4]);
+            foreach ($this->live[$day] as $r) {
+                if ($r[2] === $dimension) $add($day, $r[0], $r[3], $r[1], $r[4]);
             }
         }
 
