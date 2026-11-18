@@ -343,7 +343,7 @@ class StatsPage
 
         $rows = (array)$wpdb->get_results($wpdb->prepare(
             "SELECT slice_id, MAX(slice_label) AS label, MAX(prize_type) AS type, COUNT(*) AS n, SUM(used_order > 0) AS used, SUM(used_total) AS revenue
-             FROM $spins WHERE optin_id = %d AND created_at BETWEEN %s AND %s GROUP BY slice_id",
+             FROM $spins WHERE optin_id = %d AND prize_type <> 'pending' AND created_at BETWEEN %s AND %s GROUP BY slice_id",
             $this->optin_id, $from, $to
         ), ARRAY_A);
 
