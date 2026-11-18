@@ -239,7 +239,7 @@ class RicherStatsTest extends WP_UnitTestCase
         $this->assertStringContainsString('Phones get 50% of views but convert at 1.0%', $html, 'The device tip.');
         $this->assertStringNotContainsString('<script>alert(1)', $html);
         $this->assertStringContainsString('&lt;script&gt;alert(1)&lt;/script&gt; Tulips', $html);
-        $this->assertStringContainsString('Not enough history to compare yet', $html);
+        $this->assertStringContainsString('once there&#039;s a full period to compare with', $html);
 
         $_GET['optin'] = $id;
         $_GET['tab']   = 'country';

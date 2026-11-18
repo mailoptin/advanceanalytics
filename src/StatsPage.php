@@ -196,9 +196,28 @@ class StatsPage
 
         echo '<div class="mo-stats-grid3">';
         foreach ($tiles as $tile) {
-            printf('<div class="mo-stats-card mo-stats-kpi"><p class="mo-stats-label">%s</p><div class="mo-stats-num">%s</div><div class="mo-stats-delta">%s</div></div>', esc_html($tile[0]), esc_html($tile[1]), $tile[2]);
+            printf(
+                '<div class="mo-stats-card mo-stats-kpi"><p class="mo-stats-label">%s</p><div class="mo-stats-num">%s</div>%s</div>',
+                esc_html($tile[0]),
+                esc_html($tile[1]),
+                $had_before ? '<div class="mo-stats-delta">' . $tile[2] . '</div>' : ''
+            );
         }
         echo '</div>';
+
+        // Without a full period before, say so once rather than in every tile.
+        if ( ! $had_before && '' !== $first) {
+            $from = gmdate('Y-m-d', strtotime($first . ' +' . (2 * $this->period) . ' days'));
+            printf(
+                '<p class="mo-stats-compare-note">%s</p>',
+                esc_html(sprintf(
+                    /* translators: 1: a date, 2: a date */
+                    __('Stats start on %1$s. Changes on the period before show from %2$s, once there\'s a full period to compare with.', 'mailoptin'),
+                    date_i18n('j M Y', strtotime($first)),
+                    date_i18n('j M Y', strtotime($from . ' -1 day'))
+                ))
+            );
+        }
     }
 
     protected function empty_state()
@@ -600,6 +619,7 @@ class StatsPage
             .mo-stats-select select{border:0;box-shadow:none;background-color:transparent;font-weight:600;color:var(--ink);min-height:38px;max-width:240px}
             .mo-stats-select:focus-within{outline:2px solid var(--blue);outline-offset:1px}
             .mo-stats-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+            .mo-stats-compare-note{color:var(--muted);margin:-4px 0 16px}
             .mo-stats-card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px 24px;margin-bottom:16px;position:relative}
             .mo-stats-grid3 .mo-stats-card{margin-bottom:0}
             .mo-stats-label{color:var(--muted);margin:0 0 4px}
