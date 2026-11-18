@@ -121,6 +121,18 @@ class Tips
         return self::tip('twostep|' . floor($lost * 10), $optin_id, $headline, __('Fewer fields usually helps, and so does saying what they get by subscribing.', 'mailoptin'));
     }
 
+    /** One wheel prize used twice as often as another: [label, use rate] each. */
+    public static function wheel_prizes($best, $low, $optin_id = 0)
+    {
+        $headline = sprintf(
+            /* translators: 1: prize, 2: its use rate, 3: another prize, 4: its use rate */
+            __('%1$s is used by %2$s of winners, against %4$s for %3$s.', 'mailoptin'),
+            $best[0], self::percent($best[1], 0), $low[0], self::percent($low[1], 0)
+        );
+
+        return self::tip('wheel|' . md5($best[0] . '|' . $low[0]) . '|' . floor($best[1] / max(0.0001, $low[1])), $optin_id, $headline, __('A bigger prize less often may bring in more orders than a small one most of the time.', 'mailoptin'));
+    }
+
     protected static function tip($rule, $optin_id, $headline, $advice)
     {
         $key = substr(md5($rule . '|' . absint($optin_id)), 0, 12);
