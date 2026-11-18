@@ -13,20 +13,24 @@ class Cron extends AbstractRepository
     {
         add_action('init', array($this, 'create_schedule'));
         add_action('mo_advance_analytic_cleanup', array($this, 'cleanup_old_stat'));
+        // The first summing after an upgrade, and the rest of a run that ran out of time.
+        add_action(Store::ROLLUP_HOOK, [Store::class, 'roll_up']);
     }
 
     /**
-     * Delete record older than 40 days.
+     * Each night: sum finished days into the daily totals, then delete detail older than 40 days and
+     * daily totals older than 13 months.
      * 
      * @return false|int
      */
     public function cleanup_old_stat()
     {
-        $table = AdvanceAnalytics::advance_stat_table_name();
+        // Sum the finished days first, so nothing is deleted before it's in the daily totals.
+        Store::maybe_upgrade();
+        Store::roll_up();
+        Store::clean_up();
 
-        return self::wpdb()->query(
-            "DELETE FROM $table WHERE DATEDIFF(NOW(), date) >= 40"
-        );
+        return true;
     }
 
     public function create_schedule()
