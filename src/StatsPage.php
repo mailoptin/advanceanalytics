@@ -81,6 +81,9 @@ class StatsPage
         } else {
             $this->chart($report);
             if ($this->optin_id) $this->two_steps($totals);
+            if ($this->optin_id && class_exists('\\MailOptin\\Core\\OptinForms\\Wheel\\Wheel') && \MailOptin\Core\OptinForms\Wheel\Wheel::is_campaign($this->optin_id)) {
+                $this->wheel_cards($report, $totals);
+            }
             $this->breakdown_card($report, $totals);
             if ( ! $this->optin_id) $this->campaigns_card($report);
         }
@@ -321,6 +324,108 @@ class StatsPage
         $out .= sprintf('<rect class="mo-stats-hit" x="%d" y="0" width="%d" height="%d" fill="transparent" data-left="%d" data-right="%d" data-top="%s" data-bottom="%s"/>', $pad['l'], $w - $pad['l'] - $pad['r'], $h, $pad['l'], $w - $pad['r'], $top, $h - $pad['b']);
 
         return $out . '</svg>';
+    }
+
+    /**
+     * A prize wheel: views, spins and prizes used (a funnel), then each prize: its set chance, how often it
+     * came up, how often it was used in a paid order, and those orders' revenue (WooCommerce).
+     */
+    protected function wheel_cards(Report $report, $totals)
+    {
+        global $wpdb;
+
+        $spins = \MailOptin\Core\OptinForms\Wheel\Spins::table();
+        if ((int)get_option(\MailOptin\Core\OptinForms\Wheel\Spins::DB_OPTION, 0) < 1) return;
+
+        // The period's days are site time; spins are stored in GMT.
+        $from = get_gmt_from_date($report->start . ' 00:00:00');
+        $to   = get_gmt_from_date($report->end . ' 23:59:59');
+
+        $rows = (array)$wpdb->get_results($wpdb->prepare(
+            "SELECT slice_id, MAX(slice_label) AS label, MAX(prize_type) AS type, COUNT(*) AS n, SUM(used_order > 0) AS used, SUM(used_total) AS revenue
+             FROM $spins WHERE optin_id = %d AND prize_type <> 'pending' AND created_at BETWEEN %s AND %s GROUP BY slice_id",
+            $this->optin_id, $from, $to
+        ), ARRAY_A);
+
+        $spun = array_sum(array_column($rows, 'n'));
+        $won  = 0;
+        $used = 0;
+        foreach ($rows as $r) {
+            if ('none' !== $r['type']) $won += (int)$r['n'];
+            $used += (int)$r['used'];
+        }
+
+        $views = max(1, $totals['impression']);
+        $woo   = class_exists('WooCommerce');
+
+        echo '<div class="mo-stats-card">';
+        printf('<div class="mo-stats-card-head"><div><h3>%s</h3><p class="mo-stats-hint">%s</p></div></div>', esc_html__('Spins', 'mailoptin'), esc_html($woo ? __('How many people spun, and how many used their prize in an order', 'mailoptin') : __('How many people spun, and how many won a prize', 'mailoptin')));
+
+        $steps = [[__('Saw the wheel', 'mailoptin'), $totals['impression'], ''], [__('Spun', 'mailoptin'), $spun, sprintf(__('%s of views', 'mailoptin'), Tips::percent($spun / $views))]];
+        $steps[] = $woo
+            ? [__('Used their prize', 'mailoptin'), $used, $won ? sprintf(__('%s of winners', 'mailoptin'), Tips::percent($used / $won, 0)) : '']
+            : [__('Won a prize', 'mailoptin'), $won, $spun ? sprintf(__('%s of spins', 'mailoptin'), Tips::percent($won / $spun, 0)) : ''];
+
+        echo '<div class="mo-stats-funnel">';
+        foreach ($steps as $st) {
+            printf(
+                '<div class="mo-stats-step"><div class="mo-stats-step-what">%s</div><div class="mo-stats-step-bar"><div style="width:%s%%"></div></div><div class="mo-stats-step-n">%s%s</div></div>',
+                esc_html($st[0]), esc_attr(min(100, round(100 * $st[1] / $views, 2))), esc_html(number_format_i18n($st[1])), $st[2] ? '<small>' . esc_html($st[2]) . '</small>' : ''
+            );
+        }
+        echo '</div></div>';
+
+        if ( ! $rows) return;
+
+        // The chances as set now, by slice.
+        $chances = [];
+        foreach (\MailOptin\Core\OptinForms\Wheel\Wheel::slices($this->optin_id) as $sl) $chances[$sl['id']] = (int)$sl['chance'];
+        $chance_total = max(1, array_sum($chances));
+
+        usort($rows, function ($a, $b) { return (int)$b['n'] <=> (int)$a['n']; });
+
+        echo '<div class="mo-stats-card">';
+        printf('<div class="mo-stats-card-head"><div><h3>%s</h3><p class="mo-stats-hint">%s</p></div></div>', esc_html__('Prizes', 'mailoptin'), esc_html($woo ? __('What came up, and what was used in a paid order', 'mailoptin') : __('What came up', 'mailoptin')));
+        echo '<table class="mo-stats-table"><thead><tr><th scope="col">' . esc_html__('Prize', 'mailoptin') . '</th><th scope="col" class="mo-stats-hide-sm">' . esc_html__('Chance set', 'mailoptin') . '</th><th scope="col">' . esc_html__('Came up', 'mailoptin') . '</th>';
+        if ($woo) echo '<th scope="col">' . esc_html__('Used', 'mailoptin') . '</th><th scope="col">' . esc_html__('Use rate', 'mailoptin') . '</th><th scope="col" class="mo-stats-hide-sm">' . esc_html__('Order revenue', 'mailoptin') . '</th>';
+        echo '</tr></thead><tbody>';
+
+        $best = null;
+        $low  = null;
+        foreach ($rows as $r) {
+            $n      = (int)$r['n'];
+            // A link prize (a guide, a download) isn't used in an order: nothing to count.
+            $none   = in_array($r['type'], ['none', 'link'], true);
+            $chance = isset($chances[$r['slice_id']]) ? Tips::percent($chances[$r['slice_id']] / $chance_total, 0) : '—';
+            $rate   = ! $none && $n ? (int)$r['used'] / $n : null;
+
+            if (null !== $rate && $n >= 100) {
+                if ( ! $best || $rate > $best[1]) $best = [$r['label'], $rate];
+                if ( ! $low || $rate < $low[1]) $low = [$r['label'], $rate];
+            }
+
+            printf(
+                '<tr><td class="mo-stats-name">%s</td><td class="mo-stats-hide-sm">%s</td><td>%s <span class="mo-stats-muted">· %s</span></td>',
+                esc_html($r['label']), esc_html($chance), esc_html(number_format_i18n($n)), esc_html(Tips::percent($n / max(1, $spun), 0))
+            );
+            if ($woo) {
+                printf(
+                    '<td>%s</td><td><b class="mo-stats-strong">%s</b></td><td class="mo-stats-hide-sm">%s</td>',
+                    $none ? '—' : esc_html(number_format_i18n((int)$r['used'])),
+                    null === $rate ? '—' : esc_html(Tips::percent($rate, 0)),
+                    $none || ! (float)$r['revenue'] ? '—' : wp_kses_post(wc_price((float)$r['revenue']))
+                );
+            }
+            echo '</tr>';
+        }
+        echo '</tbody></table>';
+
+        // A tip when one prize is used twice as often as another, with 100 wins of each to go on.
+        if ($woo && $best && $low && $low[1] > 0 && $best[1] >= 2 * $low[1] && $best[0] !== $low[0]) {
+            $this->tip(Tips::wheel_prizes($best, $low, $this->optin_id));
+        }
+
+        echo '</div>';
     }
 
     protected function two_steps($t)
