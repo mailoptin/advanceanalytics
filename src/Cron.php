@@ -16,17 +16,19 @@ class Cron extends AbstractRepository
     }
 
     /**
-     * Delete record older than 40 days.
+     * Each night: sum finished days into the daily totals, then delete detail older than 40 days and
+     * daily totals older than 13 months.
      * 
      * @return false|int
      */
     public function cleanup_old_stat()
     {
-        $table = AdvanceAnalytics::advance_stat_table_name();
+        // Sum the finished days first, so nothing is deleted before it's in the daily totals.
+        Store::maybe_upgrade();
+        Store::roll_up();
+        Store::clean_up();
 
-        return self::wpdb()->query(
-            "DELETE FROM $table WHERE DATEDIFF(NOW(), date) >= 40"
-        );
+        return true;
     }
 
     public function create_schedule()

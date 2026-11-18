@@ -140,13 +140,17 @@ class AnalyticsRepository extends AbstractRepository
                 'stat_type'       => $type,
                 'optin_id'        => absint($data['optin_id']),
                 'optin_type'      => $data['optin_type'],
-                'conversion_page' => $data['conversion_page'],
-                'referrer'        => $data['referrer']
+                'conversion_page' => substr((string)($data['conversion_page'] ?? ''), 0, 256),
+                'referrer'        => substr((string)($data['referrer'] ?? ''), 0, 256),
+                // What kind of device and which country: never the IP address or user agent itself.
+                'device'          => array_key_exists('device', $data) ? (string)$data['device'] : Visitor::device(),
+                'country'         => array_key_exists('country', $data) ? (string)$data['country'] : Visitor::country($data['tz'] ?? '')
             ),
             array(
                 '%s',
                 '%s',
                 '%d',
+                '%s',
                 '%s',
                 '%s',
                 '%s',
